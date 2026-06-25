@@ -1,15 +1,28 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useTheme } from 'vuetify'
 
 const route = useRoute()
 const pageTitle = computed(() => (route.meta.title as string) ?? 'Gerador de Propostas')
+const theme = useTheme()
+
+onMounted(() => {
+  const saved = localStorage.getItem('app-theme')
+  if (saved === 'light' || saved === 'dark') {
+    theme.global.name.value = saved
+  }
+})
 
 const navItems = [
-  { title: 'Projetos',      icon: 'mdi-folder-multiple', to: '/'          },
-  { title: 'LLMs',          icon: 'mdi-brain',           to: '/llms'      },
-  { title: 'Templates',     icon: 'mdi-file-powerpoint', to: '/templates' },
-  { title: 'Configurações', icon: 'mdi-cog',             to: '/settings'  },
+  { title: 'Projetos',         icon: 'mdi-folder-multiple',   to: '/'          },
+  { title: 'Tabela de Preços', icon: 'mdi-currency-usd',      to: '/ratecard'  },
+  { title: 'Margens',          icon: 'mdi-percent',            to: '/margens'   },
+  { title: 'Prompts',          icon: 'mdi-text-box-edit-outline', to: '/prompts' },
+  { title: 'LLMs',             icon: 'mdi-brain',              to: '/llms'      },
+  { title: 'Templates',        icon: 'mdi-file-powerpoint',    to: '/templates' },
+  { title: 'Roteiros',         icon: 'mdi-clipboard-list-outline', to: '/roteiros' },
+  { title: 'Configurações',    icon: 'mdi-cog',                to: '/settings'  },
 ]
 </script>
 

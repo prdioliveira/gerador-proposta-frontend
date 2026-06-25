@@ -22,6 +22,16 @@ export default createVuetify({
           info:      '#2196F3',
         },
       },
+      light: {
+        colors: {
+          primary:   '#1565C0',
+          secondary: '#616161',
+          success:   '#2E7D32',
+          warning:   '#E65100',
+          error:     '#C62828',
+          info:      '#0277BD',
+        },
+      },
     },
   },
 })

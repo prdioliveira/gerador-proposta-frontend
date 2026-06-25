@@ -16,6 +16,21 @@ const router = createRouter({
       meta: { title: 'Detalhes do Projeto' },
     },
     {
+      path: '/ratecard',
+      component: () => import('../views/RatecardView.vue'),
+      meta: { title: 'Tabela de Preços' },
+    },
+    {
+      path: '/margens',
+      component: () => import('../views/MargensView.vue'),
+      meta: { title: 'Margens de Lucro' },
+    },
+    {
+      path: '/prompts',
+      component: () => import('../views/PromptTemplatesView.vue'),
+      meta: { title: 'Templates de Prompt' },
+    },
+    {
       path: '/llms',
       component: () => import('../views/LLMView.vue'),
       meta: { title: 'Cadastro de LLMs' },
@@ -24,6 +39,11 @@ const router = createRouter({
       path: '/templates',
       component: () => import('../views/TemplatesView.vue'),
       meta: { title: 'Gestão de Templates' },
+    },
+    {
+      path: '/roteiros',
+      component: () => import('../views/MeetingScriptsView.vue'),
+      meta: { title: 'Roteiros de Reunião' },
     },
     {
       path: '/settings',
