@@ -1,3 +1,11 @@
+export interface JobStep {
+  step: string
+  status: 'pending' | 'running' | 'done' | 'failed'
+  message?: string | null
+  started_at?: string | null
+  finished_at?: string | null
+}
+
 export interface GenerationJob {
   id: string
   project_client: string
@@ -9,4 +17,5 @@ export interface GenerationJob {
   result_filename?: string
   error_message?: string
   warnings?: string[]
+  steps?: JobStep[]
 }

@@ -21,6 +21,10 @@ export interface AppConfigFull {
   google_drive_root_folder_id?: string | null
   google_shared_drive_id?: string | null
   use_env_proxy: boolean
+  transcript_strategy: string
+  transcript_chunk_size: number
+  /** @deprecated legado — não exibir na UI; backend pode retornar mesmo assim */
+  generation_mode?: string
 }
 
 export interface AppConfigUpdate {
@@ -34,4 +38,8 @@ export interface AppConfigUpdate {
   google_drive_root_folder_id?: string | null
   google_shared_drive_id?: string | null
   use_env_proxy?: boolean
+  transcript_strategy?: string
+  transcript_chunk_size?: number
+  /** @deprecated legado — enviar sempre 'completo' por compatibilidade com o backend */
+  generation_mode?: string
 }

@@ -42,10 +42,3 @@ export interface ProjectMeta {
   proposalType: string
   details: string
 }
-
-export interface ProjectDetails {
-  site_url?: string
-  proposal_type?: string
-  margin_key?: string
-  details_text?: string
-}
