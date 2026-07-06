@@ -4,7 +4,7 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import * as api from '../services/api'
 import { fetchFileText } from '../services/files'
-import type { ProjectFile } from '../types'
+import type { JobStep, ProjectFile } from '../types'
 import { useJobPoller } from '../composables/useJobPoller'
 import JobStatusBadge from './JobStatusBadge.vue'
 
@@ -99,6 +99,51 @@ function resumeDoc() {
   doc.resume(onDocDone)
 }
 
+// ── Job steps ──────────────────────────────────────────────────────────────────
+
+const STEP_LABELS: Record<string, string> = {
+  extracting_context:          'Analisando fontes',
+  generating:                  'Iniciando geração por seção',
+  'section:sobre':             'Seção: Sobre o cliente',
+  'section:sumario_executivo': 'Seção: Sumário executivo',
+  'section:dados_cliente':     'Seção: Dados do cliente',
+  'section:contexto_dores':    'Seção: Contexto e dores',
+  'section:tipo_proposta':     'Seção: Tipo de proposta',
+  'section:objetivo':          'Seção: Objetivo',
+  'section:diagrama_as_is':    'Seção: Diagrama AS IS',
+  'section:escopo':            'Seção: Escopo e faseamento',
+  'section:entregaveis':       'Seção: Entregáveis',
+  'section:diagrama_to_be':    'Seção: Diagrama TO BE',
+  'section:estimativa':        'Seção: Estimativa de prazo',
+  'section:equipe':            'Seção: Equipe proposta',
+  'section:investimento':      'Seção: Investimento',
+  'section:proximos_passos':   'Seção: Próximos passos',
+  'section:premissas':         'Seção: Premissas',
+}
+
+function stepLabel(step: string): string {
+  if (STEP_LABELS[step]) return STEP_LABELS[step]
+  if (step.startsWith('source:transcript:'))
+    return `Transcrição: ${step.slice('source:transcript:'.length)}`
+  if (step.startsWith('source:document:'))
+    return `Documento: ${step.slice('source:document:'.length)}`
+  return step
+}
+
+function stepIcon(status: JobStep['status']): string {
+  if (status === 'done')    return 'mdi-check-circle'
+  if (status === 'failed')  return 'mdi-alert-circle'
+  if (status === 'running') return 'mdi-loading'
+  return 'mdi-circle-outline'
+}
+
+function stepColor(status: JobStep['status']): string {
+  if (status === 'done')    return 'success'
+  if (status === 'failed')  return 'error'
+  if (status === 'running') return 'primary'
+  return 'medium-emphasis'
+}
+
 // ── Markdown Viewer ───────────────────────────────────────────────────────────
 
 const viewer = reactive({
@@ -107,17 +152,26 @@ const viewer = reactive({
   content: '',
   loading: false,
   error: '',
+  truncated: false,
 })
 
 async function openViewer(file: ProjectFile) {
   viewer.title = file.name
   viewer.content = ''
   viewer.error = ''
+  viewer.truncated = false
   viewer.loading = true
   viewer.show = true
   try {
     const raw = await fetchFileText(props.client, props.project, file.name)
-    viewer.content = DOMPurify.sanitize(marked.parse(raw) as string)
+    // Adia o parse para o spinner ter tempo de renderizar antes de bloquear o thread
+    await new Promise<void>((resolve) => setTimeout(resolve, 0))
+    const PREVIEW_LIMIT = 60_000
+    const truncated = raw.length > PREVIEW_LIMIT
+    const source = truncated ? raw.slice(0, PREVIEW_LIMIT) + '\n\n---\n\n*[Documento truncado para visualização. Baixe o arquivo para ver o conteúdo completo.]*' : raw
+    const html = await marked.parse(source)
+    viewer.content = DOMPurify.sanitize(html)
+    viewer.truncated = truncated
   } catch {
     viewer.error = 'Não foi possível carregar o documento.'
   } finally {
@@ -176,6 +230,38 @@ function resumeProposal() {
           >
             Gerar Documentação
           </v-btn>
+
+          <!-- Etapas do job -->
+          <div v-if="doc.job.value?.steps?.length" class="mt-3">
+            <template
+              v-for="step in doc.job.value.steps"
+              :key="step.step"
+            >
+              <div class="d-flex align-center ga-2 mb-1">
+                <v-icon
+                  :color="stepColor(step.status)"
+                  size="16"
+                  :class="step.status === 'running' ? 'spin' : ''"
+                >
+                  {{ stepIcon(step.status) }}
+                </v-icon>
+                <span class="text-caption" :class="step.status === 'running' ? 'font-weight-medium' : 'text-medium-emphasis'">
+                  {{ stepLabel(step.step) }}
+                </span>
+                <v-chip v-if="step.status === 'failed'" color="error" size="x-small" variant="tonal" class="ml-auto">
+                  falhou
+                </v-chip>
+              </div>
+              <div v-if="step.status === 'failed' && step.message" class="d-flex align-start ga-1 mb-2 ml-6">
+                <v-icon color="error" size="11" class="mt-1 flex-shrink-0">mdi-alert-circle-outline</v-icon>
+                <span class="text-caption text-error" style="word-break: break-word; line-height: 1.4;">{{ step.message }}</span>
+              </div>
+              <div v-if="step.status === 'done' && step.message" class="d-flex align-start ga-1 mb-2 ml-6">
+                <v-icon color="warning" size="11" class="mt-1 flex-shrink-0">mdi-alert-outline</v-icon>
+                <span class="text-caption" style="color: rgb(var(--v-theme-warning)); word-break: break-word; line-height: 1.4;">{{ step.message }}</span>
+              </div>
+            </template>
+          </div>
 
           <v-alert
             v-if="doc.timedOut.value"
@@ -450,7 +536,17 @@ function resumeProposal() {
         </v-card-text>
         <v-divider />
         <v-card-actions class="px-5 py-3">
-          <v-spacer />
+          <v-alert
+            v-if="viewer.truncated"
+            type="info"
+            variant="tonal"
+            density="compact"
+            class="text-caption flex-grow-1 mr-2"
+            icon="mdi-information-outline"
+          >
+            Prévia parcial — baixe o arquivo para ver o documento completo.
+          </v-alert>
+          <v-spacer v-else />
           <v-btn
             variant="text"
             prepend-icon="mdi-download"
@@ -479,6 +575,15 @@ function resumeProposal() {
 </template>
 
 <style scoped>
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
 .file-name {
   display: block;
   overflow: hidden;

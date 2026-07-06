@@ -19,6 +19,12 @@ const loadError     = ref('')
 const sendError     = ref('')
 const messagesEl    = ref<HTMLElement | null>(null)
 const confirmDialog = ref(false)
+const inputRef      = ref<{ focus: () => void } | null>(null)
+
+async function focusInput() {
+  await nextTick()
+  inputRef.value?.focus()
+}
 
 marked.setOptions({ breaks: true })
 
@@ -70,6 +76,7 @@ async function send() {
     messages.value = messages.value.filter((m) => m.id !== optimistic.id)
   } finally {
     sending.value = false
+    await focusInput()
   }
 }
 
@@ -198,6 +205,7 @@ onMounted(load)
     <div class="pa-3 pt-2">
       <div class="d-flex ga-2 align-end">
         <v-textarea
+          ref="inputRef"
           v-model="input"
           placeholder="Pergunte sobre escopo, prazos, perfis, regras..."
           variant="outlined"
