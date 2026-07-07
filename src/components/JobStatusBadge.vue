@@ -7,10 +7,12 @@ const props = defineProps<{
 }>()
 
 const CONFIG: Record<string, { color: string; icon: string; text: string }> = {
-  pending:  { color: 'default', icon: 'mdi-clock-outline',    text: 'Aguardando' },
-  running:  { color: 'info',    icon: 'mdi-loading',           text: 'Gerando…'   },
-  done:     { color: 'success', icon: 'mdi-check-circle',      text: 'Concluído'  },
-  error:    { color: 'error',   icon: 'mdi-alert-circle',      text: 'Erro'       },
+  pending:    { color: 'default', icon: 'mdi-clock-outline',    text: 'Aguardando'  },
+  running:    { color: 'info',    icon: 'mdi-loading',           text: 'Gerando…'    },
+  cancelling: { color: 'warning', icon: 'mdi-loading',           text: 'Parando…'    },
+  cancelled:  { color: 'default', icon: 'mdi-cancel',            text: 'Cancelado'   },
+  done:       { color: 'success', icon: 'mdi-check-circle',      text: 'Concluído'   },
+  error:      { color: 'error',   icon: 'mdi-alert-circle',      text: 'Erro'        },
 }
 
 const cfg = computed(() => CONFIG[props.status] ?? { color: 'default', icon: 'mdi-help', text: props.status })
@@ -21,7 +23,7 @@ const cfg = computed(() => CONFIG[props.status] ?? { color: 'default', icon: 'md
     <v-icon
       start
       :icon="cfg.icon"
-      :class="{ 'spin': status === 'running' }"
+      :class="{ 'spin': status === 'running' || status === 'cancelling' }"
       size="14"
     />
     {{ label ?? cfg.text }}

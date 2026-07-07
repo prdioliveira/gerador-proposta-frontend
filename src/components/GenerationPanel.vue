@@ -23,6 +23,14 @@ const doc      = useJobPoller()
 const proposal = useJobPoller()
 const snackbar = ref({ show: false, message: '', color: 'success' })
 
+const canCancelDoc = computed(() =>
+  doc.job.value ? ['pending', 'running'].includes(doc.job.value.status) : false
+)
+
+const canCancelProposal = computed(() =>
+  proposal.job.value ? ['pending', 'running'].includes(proposal.job.value.status) : false
+)
+
 const hasScopeDocument = computed(() =>
   props.saidaFiles.some(
     (f) => f.name.toLowerCase().startsWith('documento_escopo_') && f.name.toLowerCase().endsWith('.md')
@@ -68,7 +76,7 @@ function formatDate(raw?: string): string {
   })
 }
 
-function notify(message: string, color: 'success' | 'error' = 'success') {
+function notify(message: string, color: 'success' | 'error' | 'warning' = 'success') {
   snackbar.value = { show: true, message, color }
 }
 
@@ -86,17 +94,30 @@ function onProposalDone(j: { result_filename?: string }) {
   emit('filesChanged')
 }
 
+function onDocCancelled() {
+  notify('Geração de documentação interrompida.', 'warning')
+}
+
+function onProposalCancelled() {
+  notify('Geração de proposta interrompida.', 'warning')
+}
+
 function startDoc() {
   doc.start(
     () => api.generateDocumentation(props.client, props.project),
     onDocDone,
+    onDocCancelled,
   ).then(() => {
     if (doc.error.value) notify(doc.error.value, 'error')
   })
 }
 
 function resumeDoc() {
-  doc.resume(onDocDone)
+  doc.resume(onDocDone, onDocCancelled)
+}
+
+function stopDoc() {
+  doc.cancel()
 }
 
 // ── Job steps ──────────────────────────────────────────────────────────────────
@@ -183,13 +204,18 @@ function startProposal() {
   proposal.start(
     () => api.generateProposal(props.client, props.project),
     onProposalDone,
+    onProposalCancelled,
   ).then(() => {
     if (proposal.error.value) notify(proposal.error.value, 'error')
   })
 }
 
 function resumeProposal() {
-  proposal.resume(onProposalDone)
+  proposal.resume(onProposalDone, onProposalCancelled)
+}
+
+function stopProposal() {
+  proposal.cancel()
 }
 </script>
 
@@ -219,17 +245,30 @@ function resumeProposal() {
             <strong>Execute antes da proposta.</strong>
           </p>
 
-          <v-btn
-            color="primary"
-            variant="flat"
-            block
-            :loading="doc.running.value"
-            :disabled="!hasInput"
-            prepend-icon="mdi-play-circle"
-            @click="startDoc"
-          >
-            Gerar Documentação
-          </v-btn>
+          <div class="d-flex ga-2">
+            <v-btn
+              color="primary"
+              variant="flat"
+              class="flex-grow-1"
+              :loading="doc.running.value"
+              :disabled="!hasInput || doc.running.value"
+              prepend-icon="mdi-play-circle"
+              @click="startDoc"
+            >
+              Gerar Documentação
+            </v-btn>
+            <v-btn
+              v-if="canCancelDoc"
+              color="warning"
+              variant="tonal"
+              :loading="doc.cancelling.value"
+              :disabled="doc.cancelling.value"
+              prepend-icon="mdi-stop-circle-outline"
+              @click="stopDoc"
+            >
+              Parar
+            </v-btn>
+          </div>
 
           <!-- Etapas do job -->
           <div v-if="doc.job.value?.steps?.length" class="mt-3">
@@ -283,6 +322,13 @@ function resumeProposal() {
               <strong>Erro:</strong> {{ doc.job.value.error_message }}
             </v-alert>
             <v-alert
+              v-if="doc.job.value.status === 'cancelled'"
+              type="warning" variant="tonal" density="compact" class="mt-3"
+              icon="mdi-cancel"
+            >
+              Geração interrompida pelo usuário.
+            </v-alert>
+            <v-alert
               v-if="doc.job.value.status === 'done'"
               type="success" variant="tonal" density="compact" class="mt-3"
             >
@@ -329,17 +375,30 @@ function resumeProposal() {
             <strong>Documentação/Escopo</strong> primeiro.
           </v-alert>
 
-          <v-btn
-            color="info"
-            variant="flat"
-            block
-            :loading="proposal.running.value"
-            :disabled="!hasInput || !hasScopeDocument"
-            prepend-icon="mdi-play-circle"
-            @click="startProposal"
-          >
-            Gerar Proposta
-          </v-btn>
+          <div class="d-flex ga-2">
+            <v-btn
+              color="info"
+              variant="flat"
+              class="flex-grow-1"
+              :loading="proposal.running.value"
+              :disabled="!hasInput || !hasScopeDocument || proposal.running.value"
+              prepend-icon="mdi-play-circle"
+              @click="startProposal"
+            >
+              Gerar Proposta
+            </v-btn>
+            <v-btn
+              v-if="canCancelProposal"
+              color="warning"
+              variant="tonal"
+              :loading="proposal.cancelling.value"
+              :disabled="proposal.cancelling.value"
+              prepend-icon="mdi-stop-circle-outline"
+              @click="stopProposal"
+            >
+              Parar
+            </v-btn>
+          </div>
 
           <v-alert
             v-if="proposal.timedOut.value"
@@ -359,6 +418,13 @@ function resumeProposal() {
               type="error" variant="tonal" density="compact" class="mt-3"
             >
               <strong>Erro:</strong> {{ proposal.job.value.error_message }}
+            </v-alert>
+            <v-alert
+              v-if="proposal.job.value.status === 'cancelled'"
+              type="warning" variant="tonal" density="compact" class="mt-3"
+              icon="mdi-cancel"
+            >
+              Geração interrompida pelo usuário.
             </v-alert>
             <v-alert
               v-if="proposal.job.value.status === 'done'"

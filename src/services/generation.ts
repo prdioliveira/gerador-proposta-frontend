@@ -14,3 +14,8 @@ export const generateProposal = (client: string, name: string) =>
 export const getJobStatus = (jobId: string) =>
   http.get<GenerationJob>(`/api/job/${jobId}`).then((r) => r.data)
 
+export const cancelJob = (jobId: string) =>
+  http
+    .post<{ job_id: string; status: string }>(`/api/job/${jobId}/cancel`)
+    .then((r) => r.data)
+

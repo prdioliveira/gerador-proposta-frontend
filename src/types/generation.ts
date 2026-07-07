@@ -11,7 +11,7 @@ export interface GenerationJob {
   project_client: string
   project_name: string
   job_type: 'documentation' | 'proposal'
-  status: 'pending' | 'running' | 'done' | 'error'
+  status: 'pending' | 'running' | 'cancelling' | 'cancelled' | 'done' | 'error'
   started_at?: string
   finished_at?: string
   result_filename?: string
