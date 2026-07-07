@@ -177,13 +177,13 @@ onMounted(load)
     </div>
 
     <!-- Lista vazia -->
-    <v-card v-else-if="outcomes.length === 0 && proposalFiles.length > 0" variant="outlined" rounded="lg" class="pa-6 text-center text-medium-emphasis">
+    <v-card v-else-if="outcomes.length === 0 && proposalFiles.length > 0" elevation="3" rounded="lg" class="pa-6 text-center text-medium-emphasis">
       <v-icon size="32" class="mb-2">mdi-chart-timeline-variant</v-icon>
       <div class="text-body-2">Nenhum desfecho registrado.</div>
     </v-card>
 
     <!-- Lista de desfechos -->
-    <v-card v-for="o in outcomes" :key="o.id" variant="outlined" rounded="lg" class="mb-3 pa-4">
+    <v-card v-for="o in outcomes" :key="o.id" elevation="3" rounded="lg" class="mb-3 pa-4">
       <div class="d-flex align-start justify-space-between ga-2 flex-wrap">
         <div class="flex-grow-1">
           <!-- Arquivo + status -->

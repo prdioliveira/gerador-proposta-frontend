@@ -107,102 +107,91 @@ async function confirmDelete() {
 
 <template>
   <v-container fluid class="pa-6">
-    <div style="max-width: 600px; margin: 0 auto">
 
-      <!-- ── Cabeçalho ──────────────────────────────── -->
-      <div class="d-flex align-center justify-space-between mb-6">
-        <div>
-          <h1 class="text-h5 font-weight-bold">Margens de Lucro</h1>
-          <p class="text-body-2 text-medium-emphasis mt-1">
-            Percentuais aplicados ao custo total na geração de propostas
-          </p>
-        </div>
-        <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">
-          Nova Margem
-        </v-btn>
-      </div>
-
-      <!-- ── Carregamento ────────────────────────────── -->
-      <template v-if="loading">
-        <v-skeleton-loader v-for="n in 3" :key="n" type="list-item-two-line" class="mb-3 rounded-lg" />
-      </template>
-
-      <v-alert v-else-if="loadError" type="error" variant="tonal" class="mb-4">
-        {{ loadError }}
-      </v-alert>
-
-      <!-- ── Estado vazio ────────────────────────────── -->
-      <div
-        v-else-if="margins.length === 0"
-        class="d-flex flex-column align-center justify-center"
-        style="min-height: 280px"
-      >
-        <v-icon size="64" color="medium-emphasis" class="mb-4">mdi-percent-outline</v-icon>
-        <p class="text-h6 text-medium-emphasis">Nenhuma margem configurada</p>
-        <p class="text-body-2 text-medium-emphasis mb-6">
-          Adicione percentuais de margem para uso na geração de propostas
+    <!-- ── Cabeçalho ──────────────────────────────── -->
+    <div class="d-flex align-center justify-space-between mb-6">
+      <div>
+        <h1 class="text-h5 font-weight-bold">Margens de Lucro</h1>
+        <p class="text-body-2 text-medium-emphasis mt-1">
+          Percentuais aplicados ao custo total na geração de propostas
         </p>
-        <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">
-          Nova Margem
-        </v-btn>
       </div>
-
-      <!-- ── Lista de margens ────────────────────────── -->
-      <template v-else>
-        <v-card
-          v-for="margin in margins"
-          :key="margin.id"
-          variant="outlined"
-          rounded="lg"
-          class="mb-3"
-        >
-          <v-card-text class="pa-4">
-            <div class="d-flex align-center justify-space-between">
-              <div class="d-flex align-center ga-3 flex-wrap">
-                <v-chip
-                  variant="tonal"
-                  color="primary"
-                  size="small"
-                  class="font-monospace"
-                >
-                  {{ margin.key }}
-                </v-chip>
-                <span class="text-body-1 font-weight-medium">{{ margin.label }}</span>
-                <v-chip color="success" variant="flat" size="small">
-                  {{ margin.percent }}%
-                </v-chip>
-              </div>
-              <div class="d-flex ga-1 flex-shrink-0">
-                <v-tooltip text="Editar" location="top">
-                  <template #activator="{ props }">
-                    <v-btn
-                      v-bind="props"
-                      icon="mdi-pencil-outline"
-                      variant="text"
-                      size="small"
-                      @click="openEdit(margin)"
-                    />
-                  </template>
-                </v-tooltip>
-                <v-tooltip text="Excluir" location="top">
-                  <template #activator="{ props }">
-                    <v-btn
-                      v-bind="props"
-                      icon="mdi-trash-can-outline"
-                      variant="text"
-                      size="small"
-                      color="error"
-                      @click="delMargin.target = margin; delMargin.error = ''; delMargin.show = true"
-                    />
-                  </template>
-                </v-tooltip>
-              </div>
-            </div>
-          </v-card-text>
-        </v-card>
-      </template>
-
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">
+        Nova Margem
+      </v-btn>
     </div>
+
+    <!-- ── Carregamento ────────────────────────────── -->
+    <v-row v-if="loading" dense>
+      <v-col v-for="n in 3" :key="n" cols="12" sm="6" md="4">
+        <v-skeleton-loader type="card" class="rounded-lg" />
+      </v-col>
+    </v-row>
+
+    <v-alert v-else-if="loadError" type="error" variant="tonal" class="mb-4">
+      {{ loadError }}
+    </v-alert>
+
+    <!-- ── Estado vazio ────────────────────────────── -->
+    <div
+      v-else-if="margins.length === 0"
+      class="d-flex flex-column align-center justify-center"
+      style="min-height: 280px"
+    >
+      <v-icon size="64" color="medium-emphasis" class="mb-4">mdi-percent-outline</v-icon>
+      <p class="text-h6 text-medium-emphasis">Nenhuma margem configurada</p>
+      <p class="text-body-2 text-medium-emphasis mb-6">
+        Adicione percentuais de margem para uso na geração de propostas
+      </p>
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">
+        Nova Margem
+      </v-btn>
+    </div>
+
+    <!-- ── Cards de margem, lado a lado ─────────────── -->
+    <v-row v-else dense>
+      <v-col
+        v-for="margin in margins"
+        :key="margin.id"
+        cols="12" sm="6" md="4"
+      >
+        <v-card elevation="3" rounded="lg" class="pa-4 h-100">
+          <div class="d-flex align-center justify-space-between mb-4">
+            <v-chip variant="tonal" color="primary" size="small" class="font-monospace">
+              {{ margin.key }}
+            </v-chip>
+            <div class="d-flex ga-1">
+              <v-tooltip text="Editar" location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    icon="mdi-pencil-outline"
+                    variant="text"
+                    size="small"
+                    @click="openEdit(margin)"
+                  />
+                </template>
+              </v-tooltip>
+              <v-tooltip text="Excluir" location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    icon="mdi-trash-can-outline"
+                    variant="text"
+                    size="small"
+                    color="error"
+                    @click="delMargin.target = margin; delMargin.error = ''; delMargin.show = true"
+                  />
+                </template>
+              </v-tooltip>
+            </div>
+          </div>
+          <div class="text-subtitle-1 font-weight-medium mb-1">{{ margin.label }}</div>
+          <div class="text-h3 font-weight-bold text-success">{{ margin.percent }}%</div>
+        </v-card>
+      </v-col>
+    </v-row>
+
   </v-container>
 
   <!-- ────────────────────────────────────────────────── -->

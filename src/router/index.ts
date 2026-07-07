@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import DashboardView from '../views/DashboardView.vue'
 import ProjectListView from '../views/ProjectListView.vue'
 
 const router = createRouter({
@@ -7,6 +8,11 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      component: DashboardView,
+      meta: { title: 'Dashboards' },
+    },
+    {
+      path: '/projetos',
       component: ProjectListView,
       meta: { title: 'Projetos' },
     },

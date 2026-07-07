@@ -144,7 +144,7 @@ function folderFiles(name: string) {
 
     <!-- ── Cabeçalho ───────────────────────────────── -->
     <div class="d-flex align-start mb-4 ga-2">
-      <v-btn icon="mdi-arrow-left" variant="text" size="small" class="mt-1" @click="router.push('/')" />
+      <v-btn icon="mdi-arrow-left" variant="text" size="small" class="mt-1" @click="router.push('/projetos')" />
 
       <div class="flex-grow-1">
         <!-- Título + status -->
@@ -232,10 +232,10 @@ function folderFiles(name: string) {
 
         <!-- ─── ARQUIVOS ──────────────────────────── -->
         <v-tabs-window-item value="files">
-          <v-row dense>
+          <v-row>
             <!-- Pastas de entrada -->
-            <v-col v-for="folder in INPUT_FOLDERS" :key="folder" cols="12" md="6">
-              <v-card variant="outlined" rounded="lg" class="pa-4 h-100">
+            <v-col v-for="folder in INPUT_FOLDERS" :key="folder" cols="12" md="6" class="mb-2">
+              <v-card elevation="3" rounded="lg" class="pa-4 h-100">
                 <div class="d-flex align-center justify-space-between mb-3">
                   <div class="d-flex align-center ga-2">
                     <v-icon size="18" :icon="FOLDER_META[folder]?.icon ?? 'mdi-folder-outline'" color="medium-emphasis" />
@@ -265,7 +265,7 @@ function folderFiles(name: string) {
 
         <!-- ─── CONFIGURAÇÃO ─────────────────────── -->
         <v-tabs-window-item value="config">
-          <v-card variant="outlined" rounded="lg" class="pa-4 mb-4">
+          <v-card elevation="3" rounded="lg" class="pa-4 mb-4">
             <v-card-title class="pa-0 mb-4 text-subtitle-1">Metadados do Projeto</v-card-title>
 
             <v-alert v-if="metaError" type="error"   variant="tonal" density="compact" class="mb-3">{{ metaError }}</v-alert>
@@ -330,7 +330,7 @@ function folderFiles(name: string) {
           </v-card>
 
           <!-- Perfis de atuação -->
-          <v-card variant="outlined" rounded="lg" class="pa-4">
+          <v-card elevation="3" rounded="lg" class="pa-4">
             <v-card-title class="pa-0 mb-3 text-subtitle-1">Perfis Selecionados</v-card-title>
             <ProfileSelector
               :client="client"
@@ -354,7 +354,7 @@ function folderFiles(name: string) {
 
         <!-- ─── DESFECHO ──────────────────────────── -->
         <v-tabs-window-item value="outcome">
-          <v-card variant="outlined" rounded="lg" class="pa-4">
+          <v-card elevation="3" rounded="lg" class="pa-4">
             <OutcomePanel
               :client="client"
               :project="projectName"

@@ -333,7 +333,7 @@ async function confirmDeleteModel() {
           </div>
 
           <!-- Lista de modelos -->
-          <v-card v-else variant="outlined" rounded="lg">
+          <v-card v-else elevation="3" rounded="lg">
             <v-list density="compact" class="py-0">
               <template v-for="(model, idx) in provider.models" :key="model.id">
                 <v-divider v-if="idx > 0" />

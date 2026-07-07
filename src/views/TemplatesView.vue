@@ -265,7 +265,7 @@ onMounted(async () => {
         <!-- Empty -->
         <v-card
           v-if="allocTemplates.length === 0"
-          variant="outlined"
+          elevation="3"
           rounded="lg"
           class="pa-6 text-center"
         >
@@ -287,7 +287,7 @@ onMounted(async () => {
         <v-card
           v-for="t in allocTemplates"
           :key="t.id"
-          variant="outlined"
+          elevation="3"
           rounded="lg"
           class="mb-3"
         >
@@ -397,7 +397,7 @@ onMounted(async () => {
         <!-- Empty -->
         <v-card
           v-if="devTemplates.length === 0"
-          variant="outlined"
+          elevation="3"
           rounded="lg"
           class="pa-6 text-center"
         >
@@ -419,7 +419,7 @@ onMounted(async () => {
         <v-card
           v-for="t in devTemplates"
           :key="t.id"
-          variant="outlined"
+          elevation="3"
           rounded="lg"
           class="mb-3"
         >
@@ -529,7 +529,7 @@ onMounted(async () => {
         <!-- Empty -->
         <v-card
           v-if="assessmentTemplates.length === 0"
-          variant="outlined"
+          elevation="3"
           rounded="lg"
           class="pa-6 text-center"
         >
@@ -551,7 +551,7 @@ onMounted(async () => {
         <v-card
           v-for="t in assessmentTemplates"
           :key="t.id"
-          variant="outlined"
+          elevation="3"
           rounded="lg"
           class="mb-3"
         >

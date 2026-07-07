@@ -231,7 +231,7 @@ function stopProposal() {
     <v-row dense class="mb-6">
       <!-- Documentação -->
       <v-col cols="12" sm="6">
-        <v-card variant="outlined" rounded="lg" class="pa-4 h-100">
+        <v-card elevation="3" rounded="lg" class="pa-4 h-100">
           <div class="d-flex align-center justify-space-between mb-2">
             <span class="text-subtitle-2 font-weight-medium">
               <v-icon size="16" class="mr-1" color="primary">mdi-language-markdown</v-icon>
@@ -353,7 +353,7 @@ function stopProposal() {
 
       <!-- Proposta PPT -->
       <v-col cols="12" sm="6">
-        <v-card variant="outlined" rounded="lg" class="pa-4 h-100">
+        <v-card elevation="3" rounded="lg" class="pa-4 h-100">
           <div class="d-flex align-center justify-space-between mb-2">
             <span class="text-subtitle-2 font-weight-medium">
               <v-icon size="16" class="mr-1" color="info">mdi-file-powerpoint</v-icon>
@@ -454,7 +454,7 @@ function stopProposal() {
     <v-row dense>
       <!-- Documentações de Escopo -->
       <v-col cols="12" md="6">
-        <v-card variant="outlined" rounded="lg" class="h-100">
+        <v-card elevation="3" rounded="lg" class="h-100">
           <div class="d-flex align-center ga-2 px-4 pt-4 pb-2">
             <v-icon color="primary" size="18">mdi-language-markdown</v-icon>
             <span class="text-subtitle-2 font-weight-medium">Documentações de Escopo</span>
@@ -520,7 +520,7 @@ function stopProposal() {
 
       <!-- Propostas PPT -->
       <v-col cols="12" md="6">
-        <v-card variant="outlined" rounded="lg" class="h-100">
+        <v-card elevation="3" rounded="lg" class="h-100">
           <div class="d-flex align-center ga-2 px-4 pt-4 pb-2">
             <v-icon color="info" size="18">mdi-file-powerpoint</v-icon>
             <span class="text-subtitle-2 font-weight-medium">Propostas PPT</span>

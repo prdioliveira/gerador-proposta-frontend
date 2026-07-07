@@ -23,7 +23,16 @@ const inputRef      = ref<{ focus: () => void } | null>(null)
 
 async function focusInput() {
   await nextTick()
-  inputRef.value?.focus()
+  // Um segundo passo via rAF cobre casos em que o auto-grow do textarea
+  // ou algum reflow tardio ainda não terminou quando o nextTick resolve.
+  requestAnimationFrame(() => {
+    const el = inputRef.value as unknown as { focus?: () => void; $el?: HTMLElement } | null
+    if (el?.focus) {
+      el.focus()
+    } else {
+      el?.$el?.querySelector('textarea')?.focus()
+    }
+  })
 }
 
 marked.setOptions({ breaks: true })
@@ -104,7 +113,7 @@ onMounted(load)
 </script>
 
 <template>
-  <v-card variant="outlined" rounded="lg" class="d-flex flex-column" style="height: 620px">
+  <v-card elevation="3" rounded="lg" class="d-flex flex-column" style="height: 620px">
 
     <!-- Header -->
     <v-toolbar density="compact" color="transparent">

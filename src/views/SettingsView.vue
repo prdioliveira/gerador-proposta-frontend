@@ -303,7 +303,7 @@ function toggleTheme(val: boolean | null) {
 
     <!-- Content -->
     <template v-else>
-      <v-card variant="outlined" rounded="lg">
+      <v-card elevation="3" rounded="lg">
 
         <!-- Tabs -->
         <v-tabs v-model="activeTab" color="primary" align-tabs="start" class="border-b">

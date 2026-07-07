@@ -1,5 +1,8 @@
 import http from './http'
-import type { ProposalOutcome, OutcomeCreate, OutcomeUpdate } from '../types/outcomes'
+import type { ProposalOutcome, OutcomeCreate, OutcomeUpdate, OutcomeSummary } from '../types/outcomes'
+
+export const getOutcomeSummary = () =>
+  http.get<OutcomeSummary>('/api/outcomes/summary').then((r) => r.data)
 
 export const listOutcomes = (client: string, project: string) =>
   http.get<ProposalOutcome[]>(`/api/outcomes/${encodeURIComponent(client)}/${encodeURIComponent(project)}`).then((r) => r.data)

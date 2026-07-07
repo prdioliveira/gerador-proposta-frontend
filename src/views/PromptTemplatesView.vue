@@ -5,6 +5,10 @@ import type { PromptCatalogResponse, PromptDefinitionResponse, PromptTemplateRes
 
 type ModeCode = 'direct' | 'complete'
 
+// Edição de prompts desabilitada por enquanto — a tela funciona somente leitura.
+// Para reabilitar, basta trocar para false.
+const READ_ONLY = true
+
 // ── State ──────────────────────────────────────────────
 const catalog    = ref<PromptCatalogResponse>({ modes: [], definitions: [] })
 const templates  = ref<PromptTemplateResponse[]>([])
@@ -252,7 +256,12 @@ async function confirmDelete() {
 
       <!-- ── Cabeçalho ──────────────────────────────── -->
       <div class="mb-4">
-        <h1 class="text-h5 font-weight-bold">Templates de Prompt</h1>
+        <div class="d-flex align-center ga-2 flex-wrap">
+          <h1 class="text-h5 font-weight-bold">Templates de Prompt</h1>
+          <v-chip v-if="READ_ONLY" size="small" variant="tonal" color="secondary" prepend-icon="mdi-lock-outline">
+            Somente leitura
+          </v-chip>
+        </div>
         <p class="text-body-2 text-medium-emphasis mt-1">
           Prompts organizados pela estratégia de geração do backend: <strong>Direto</strong> (Clip) ou <strong>Completo</strong> (MapReduce).
         </p>
@@ -286,7 +295,7 @@ async function confirmDelete() {
         <v-row>
           <!-- ── Lista de definições ──────────────────── -->
           <v-col cols="12" md="4" lg="3">
-            <v-card variant="outlined" rounded="lg">
+            <v-card elevation="3" rounded="lg">
               <div v-if="loadingTemplates" class="pa-6 d-flex justify-center">
                 <v-progress-circular indeterminate color="primary" size="28" />
               </div>
@@ -355,7 +364,7 @@ async function confirmDelete() {
 
             <template v-else-if="!selectedDefinition">
               <v-card
-                variant="outlined" rounded="lg"
+                elevation="3" rounded="lg"
                 class="pa-8 d-flex flex-column align-center justify-center"
                 style="min-height: 300px"
               >
@@ -365,7 +374,7 @@ async function confirmDelete() {
             </template>
 
             <template v-else>
-              <v-card variant="outlined" rounded="lg">
+              <v-card elevation="3" rounded="lg">
                 <v-card-text class="pb-2">
                   <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
                     <span class="text-subtitle-1 font-weight-medium">{{ selectedDefinition.label }}</span>
@@ -410,11 +419,12 @@ async function confirmDelete() {
                       variant="outlined"
                       rows="18"
                       auto-grow
-                      :disabled="saving"
+                      :readonly="READ_ONLY"
+                      :disabled="!READ_ONLY && saving"
                       style="font-family: monospace; font-size: 13px"
                     />
 
-                    <div class="d-flex flex-wrap ga-2 mt-2">
+                    <div v-if="!READ_ONLY" class="d-flex flex-wrap ga-2 mt-2">
                       <v-btn
                         color="primary" variant="flat"
                         prepend-icon="mdi-content-save-outline"
@@ -438,7 +448,7 @@ async function confirmDelete() {
                     <v-alert type="warning" variant="tonal" density="compact" class="mb-3">
                       Nenhum template ativo para esta definição.
                     </v-alert>
-                    <v-btn variant="tonal" color="primary" prepend-icon="mdi-plus" @click="openVersionDialog">
+                    <v-btn v-if="!READ_ONLY" variant="tonal" color="primary" prepend-icon="mdi-plus" @click="openVersionDialog">
                       Criar template
                     </v-btn>
                   </template>
@@ -461,7 +471,7 @@ async function confirmDelete() {
                         <template #subtitle>
                           {{ formatDate(t.updated_at ?? t.created_at) }}
                         </template>
-                        <template #append>
+                        <template v-if="!READ_ONLY" #append>
                           <v-btn
                             size="small" variant="tonal" color="secondary"
                             prepend-icon="mdi-star-outline"

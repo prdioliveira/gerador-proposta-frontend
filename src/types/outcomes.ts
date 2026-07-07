@@ -34,3 +34,11 @@ export interface OutcomeUpdate {
   external_project_id?: string | null
   notes?: string | null
 }
+
+export interface OutcomeSummary {
+  total: number
+  by_status: Record<OutcomeStatus, number>
+  decided: number
+  conversion_rate: number | null
+  approved_contract_value: number
+}
