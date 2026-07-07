@@ -92,7 +92,13 @@ O frontend é servido como arquivos estáticos pelo backend FastAPI. O fluxo de 
    # Linux / macOS
    cp -r dist/* ../backend/frontend/
    ```
-4. Inicie o backend — ele serve o frontend automaticamente na raiz `/`
+4. Inicie o backend — ele serve `frontend/index.html` na raiz `/` e os assets estáticos em `/assets`
+
+> **Limitação conhecida:** o backend hoje só tem rota explícita para `GET /` (ver `meeting_agent/fastapi_app.py`) — não existe uma rota "catch-all" que sirva `index.html` para qualquer caminho não reconhecido. Isso significa:
+> - Carregar a aplicação pela raiz (`/`) e navegar clicando nos links do menu **funciona normalmente** (o Vue Router troca de rota no navegador, sem nova requisição ao servidor).
+> - **Acessar diretamente uma URL interna** (digitar a URL, dar F5, abrir um link salvo/compartilhado) em qualquer rota que não seja `/` — por exemplo `/projetos`, `/ratecard`, `/project/Cliente/Projeto` — retorna **404** do backend, porque a requisição chega nele como uma página real, não como navegação client-side.
+>
+> Para suportar deep-link/refresh em qualquer rota, o backend precisaria de uma rota catch-all (`GET /{path:path}`) que sirva `frontend/index.html` para qualquer caminho que não bata com `/api/*` nem `/assets/*`. Isso ainda não está implementado.
 
 ---
 
