@@ -8,12 +8,14 @@ Interface web do sistema de geração de propostas comerciais. SPA construída c
 
 O frontend oferece uma interface completa para:
 
+- Acompanhar indicadores de propostas em um **Dashboard** (taxa de conversão, cobertura de desfecho, distribuição por status, valor aprovado)
 - Gerenciar projetos por cliente
 - Enviar documentos de entrada (questionários, transcrições, documentos, imagens)
-- Acionar a geração de escopo técnico e proposta PPT via IA
+- Acionar a geração de escopo técnico e proposta PPT via IA, com opção de **interromper** uma geração em andamento
+- Registrar o desfecho de cada proposta (aprovada, perdida, em negociação, pendente)
 - Conversar com os documentos do projeto em um chat contextualizado
-- Consultar e editar roteiros de reunião por tipo de proposta
-- Configurar LLMs, templates PPT, ratecard, margens e prompts
+- Consultar roteiros de reunião por tipo de proposta
+- Configurar LLMs, templates PPT, ratecard, margens e prompts (prompts atualmente em modo **somente leitura** — ver [Notas](#notas))
 
 ---
 
@@ -115,35 +117,55 @@ O frontend é servido como arquivos estáticos pelo backend FastAPI. O fluxo de 
 
 ```
 src/
-  components/         ← Componentes reutilizáveis
-    ChatPanel.vue       Chat com documentos do projeto
-    ConfirmDialog.vue   Dialog de confirmação padrão
-    GenerationPanel.vue Painel de geração de escopo e proposta
-    JobStatusBadge.vue  Badge de status do job de geração
-    OutcomePanel.vue    Registro de resultado de propostas
-    ProfileSelector.vue Seleção de perfis profissionais
-  composables/        ← Lógica reutilizável
-    useJobPoller.ts     Polling de status de jobs assíncronos
-  services/           ← Camada de comunicação com a API
-    api.ts              Chamadas gerais de projetos e arquivos
-    chat.ts             Chat com documentos
-    http.ts             Instância Axios configurada
-    meetingScripts.ts   Roteiros de reunião
-  views/              ← Páginas (uma por rota)
-    LLMView.vue         Configuração de provedores de IA
-    MargensView.vue     Configuração de margens
-    MeetingScriptsView.vue Roteiros de reunião
-    ProfileSelector.vue Seleção de perfis
-    ProjectDetailView.vue Detalhes e abas do projeto
-    ProjectListView.vue Lista de projetos
-    PromptTemplatesView.vue Editor de prompts
-    RatecardView.vue    Tabela de preços
-    SettingsView.vue    Configurações gerais
-    TemplatesView.vue   Templates PPT
+  components/           ← Componentes reutilizáveis
+    ChatPanel.vue         Chat com documentos do projeto
+    ConfirmDialog.vue     Dialog de confirmação padrão
+    FileUploader.vue      Upload/drag-drop de arquivos por pasta
+    GenerationPanel.vue   Geração de escopo/proposta (com botão de interromper)
+    JobStatusBadge.vue    Badge de status do job de geração (inclui cancelando/cancelado)
+    OutcomePanel.vue      Registro de resultado de propostas
+    ProfileSelector.vue   Seleção de perfis profissionais
+    ProjectCard.vue       Card de projeto na listagem
+  composables/          ← Lógica reutilizável
+    useJobPoller.ts        Polling de status de job assíncrono + cancelamento
+  services/             ← Camada de comunicação com a API (um arquivo por domínio)
+    api.ts                 Barrel: reexporta todos os serviços abaixo
+    auth.ts                Login Google / sessão (ver Notas)
+    chat.ts                Chat com documentos
+    config.ts              Configurações gerais da aplicação
+    files.ts               Download de arquivos e pacotes .zip
+    generation.ts           Geração de documentação/proposta e cancelamento de job
+    http.ts                 Instância Axios (withCredentials + interceptor de 401)
+    llm.ts                  Provedores e modelos de IA
+    margins.ts              Margens de lucro
+    meetingScripts.ts       Roteiros de reunião
+    outcomes.ts             Desfechos de propostas e resumo agregado (dashboard)
+    projects.ts             Projetos e perfis selecionados
+    prompts.ts              Catálogo e templates de prompt
+    ratecard.ts             Tabela de preços
+    templates.ts            Templates PowerPoint
+  stores/               ← Estado global (Pinia)
+    auth.ts                Sessão do usuário (ver Notas)
+    projects.ts             Lista de projetos
+  types/                ← Tipos TypeScript, um arquivo por domínio (espelham os services)
+  views/                ← Páginas (uma por rota)
+    DashboardView.vue      Indicadores de propostas
+    LLMView.vue             Configuração de provedores de IA
+    LoginView.vue           Tela de login Google (ver Notas)
+    MargensView.vue         Configuração de margens
+    MeetingScriptsView.vue  Roteiros de reunião
+    ProjectDetailView.vue   Detalhes e abas do projeto
+    ProjectListView.vue     Lista de projetos
+    PromptTemplatesView.vue Templates de prompt (somente leitura)
+    RatecardView.vue        Tabela de preços
+    SettingsView.vue        Configurações gerais
+    TemplatesView.vue       Templates PPT
   router/
-    index.ts            Definição de rotas
-  App.vue             Layout principal com navegação lateral
-  main.ts             Ponto de entrada
+    index.ts               Definição de rotas
+  plugins/
+    vuetify.ts              Tema (light/dark) e ícones
+  App.vue                 Layout principal: navegação lateral + gate de autenticação
+  main.ts                 Ponto de entrada
 ```
 
 ---
@@ -152,11 +174,12 @@ src/
 
 | Rota | View | Descrição |
 |---|---|---|
-| `/` | ProjectListView | Lista de projetos |
+| `/` | DashboardView | Indicadores de propostas (tela inicial) |
+| `/projetos` | ProjectListView | Lista de projetos |
 | `/project/:client/:name` | ProjectDetailView | Detalhes do projeto com abas |
 | `/ratecard` | RatecardView | Tabela de preços (perfis e taxas) |
 | `/margens` | MargensView | Margens de lucro |
-| `/prompts` | PromptTemplatesView | Templates de prompt de IA |
+| `/prompts` | PromptTemplatesView | Templates de prompt de IA (somente leitura) |
 | `/llms` | LLMView | Provedores e modelos de IA |
 | `/templates` | TemplatesView | Templates PowerPoint |
 | `/roteiros` | MeetingScriptsView | Roteiros de reunião |
@@ -170,9 +193,15 @@ A tela de detalhes do projeto (`/project/:client/:name`) contém as abas:
 
 | Aba | Descrição |
 |---|---|
-| **Informações** | Metadados, contexto e detalhes do projeto |
-| **Arquivos** | Upload e listagem de arquivos por pasta de entrada |
-| **Perfis** | Seleção de perfis profissionais para a proposta |
-| **Gerar Proposta** | Geração de escopo e proposta PPT, histórico de arquivos |
-| **Resultados** | Registro de propostas (aprovadas, perdidas, em negociação) |
+| **Arquivos do Projeto** | Upload e listagem de arquivos por pasta de entrada |
+| **Informações Complementares** | Metadados, perfis selecionados e contexto do projeto |
+| **Gerar Proposta** | Geração de escopo e proposta PPT (com botão de interromper), histórico de arquivos |
+| **Desfecho** | Registro de propostas (aprovadas, perdidas, em negociação, pendentes) |
 | **Chat** | Conversa contextualizada com os documentos do projeto |
+
+---
+
+## Notas
+
+- **Prompts somente leitura**: a tela `/prompts` está temporariamente travada para edição (constante `READ_ONLY` no topo de `PromptTemplatesView.vue`). A leitura do conteúdo continua disponível; criar/editar/ativar/excluir versões fica oculto até a flag ser desligada.
+- **Login Google (`services/auth.ts`, `stores/auth.ts`, `views/LoginView.vue`)**: o frontend tem suporte pronto para autenticação via Google, incluindo o gate em `App.vue` (`GET /api/auth/me` no carregamento, redirecionamento para `LoginView` quando necessário, logout, e reação a respostas `401 AUTH_REQUIRED` de qualquer chamada). Esse fluxo só ativa a tela de login se o backend responder `authEnabled: true`; caso os endpoints `/api/auth/*` não existam na versão atual do backend, a aplicação segue funcionando normalmente sem exigir login.
