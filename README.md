@@ -43,7 +43,7 @@ Crie um arquivo `.env` na raiz do projeto (opcional):
 VITE_API_URL=http://localhost:8000
 ```
 
-Em desenvolvimento, o Vite faz proxy automático de `/api` para o backend. Em produção, o build é servido pelo próprio backend, então essa variável não é necessária.
+Em desenvolvimento, o Vite faz proxy automático de `/api` para o backend. Em produção, o frontend é hospedado separadamente do backend, então `VITE_API_URL` deve apontar para a URL pública da API no ambiente de destino.
 
 ---
 
@@ -65,40 +65,15 @@ Acesse em: `http://localhost:5173`
 npm run build
 ```
 
-Os arquivos estáticos são gerados em `dist/`. Copie o conteúdo para o diretório `frontend/` do backend para que ele os sirva diretamente.
+Os arquivos estáticos são gerados em `dist/`, prontos para deploy no hosting usado pelo frontend (o backend não serve mais esses arquivos).
+
+> Como a aplicação usa `createWebHistory` (rotas sem `#`), o servidor/host que for servir `dist/` precisa redirecionar qualquer caminho desconhecido para `index.html` (fallback de SPA) — senão, acessar uma rota interna diretamente pela URL (ou dar F5 nela) retorna 404 em vez de carregar o app.
 
 **Preview do build:**
 
 ```bash
 npm run preview
 ```
-
----
-
-## Deploy em Homologação
-
-O frontend é servido como arquivos estáticos pelo backend FastAPI. O fluxo de deploy é:
-
-1. Configure `VITE_API_URL` se necessário (geralmente não é necessário quando servido pelo backend)
-2. Execute o build:
-   ```bash
-   npm run build
-   ```
-3. Copie o conteúdo de `dist/` para `frontend/` no diretório do backend:
-   ```bash
-   # Windows
-   xcopy /E /Y dist\ ..\Criação de Agente\frontend\
-   
-   # Linux / macOS
-   cp -r dist/* ../backend/frontend/
-   ```
-4. Inicie o backend — ele serve `frontend/index.html` na raiz `/` e os assets estáticos em `/assets`
-
-> **Limitação conhecida:** o backend hoje só tem rota explícita para `GET /` (ver `meeting_agent/fastapi_app.py`) — não existe uma rota "catch-all" que sirva `index.html` para qualquer caminho não reconhecido. Isso significa:
-> - Carregar a aplicação pela raiz (`/`) e navegar clicando nos links do menu **funciona normalmente** (o Vue Router troca de rota no navegador, sem nova requisição ao servidor).
-> - **Acessar diretamente uma URL interna** (digitar a URL, dar F5, abrir um link salvo/compartilhado) em qualquer rota que não seja `/` — por exemplo `/projetos`, `/ratecard`, `/project/Cliente/Projeto` — retorna **404** do backend, porque a requisição chega nele como uma página real, não como navegação client-side.
->
-> Para suportar deep-link/refresh em qualquer rota, o backend precisaria de uma rota catch-all (`GET /{path:path}`) que sirva `frontend/index.html` para qualquer caminho que não bata com `/api/*` nem `/assets/*`. Isso ainda não está implementado.
 
 ---
 
